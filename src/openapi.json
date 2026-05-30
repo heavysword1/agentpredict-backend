@@ -1,0 +1,135 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "AgentPredict x402 API",
+    "description": "Prediction markets API - browse and track Polymarket and Manifold markets. All endpoints support x402 HTTP 402 payment protocol.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "https://predict.memoryapi.org", "description": "Production" },
+    { "url": "http://localhost:3030", "description": "Local development" }
+  ],
+  "paths": {
+    "/x402/predict/markets": {
+      "get": {
+        "summary": "Browse Polymarket prediction markets",
+        "description": "Search and filter prediction markets by category, keyword, or volume",
+        "x-price": "$0.001",
+        "parameters": [
+          { "name": "tag", "in": "query", "schema": { "type": "string" }, "description": "Category: crypto, politics, sports, economics, science, entertainment, pop-culture" },
+          { "name": "q", "in": "query", "schema": { "type": "string" }, "description": "Keyword search" },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20, "maximum": 50 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Markets list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "count": { "type": "integer" },
+                    "total_volume_usd": { "type": "number" },
+                    "markets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "question": { "type": "string" },
+                          "category": { "type": "string" },
+                          "volume_usd": { "type": "number" },
+                          "price": { "type": "number", "description": "Probability (0-1)" },
+                          "outcomes": { "type": "array" }
+                        }
+                      }
+                    },
+                    "source": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "402": { "description": "Payment required" }
+        }
+      }
+    },
+    "/x402/predict/market": {
+      "get": {
+        "summary": "Get market details",
+        "description": "Fetch detailed information for a specific market",
+        "x-price": "$0.001",
+        "parameters": [
+          { "name": "id", "in": "query", "schema": { "type": "string" }, "description": "Market ID (optional - defaults to top market)" }
+        ],
+        "responses": {
+          "200": {
+            "description": "Market details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": { "type": "string" },
+                    "question": { "type": "string" },
+                    "volume_usd": { "type": "number" },
+                    "yes_price": { "type": "number" },
+                    "no_price": { "type": "number" },
+                    "outcomes_detail": { "type": "array" }
+                  }
+                }
+              }
+            }
+          },
+          "402": { "description": "Payment required" }
+        }
+      }
+    },
+    "/x402/predict/trending": {
+      "get": {
+        "summary": "Get trending markets",
+        "description": "Fetch top prediction markets by volume/liquidity",
+        "x-price": "$0.001",
+        "parameters": [
+          { "name": "source", "in": "query", "schema": { "type": "string", "enum": ["polymarket", "manifold", "all"], "default": "all" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10, "maximum": 50 } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trending markets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "trending": { "type": "array" },
+                    "source": { "type": "string" },
+                    "updated_at": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "402": { "description": "Payment required" }
+        }
+      }
+    },
+    "/mcp": {
+      "get": {
+        "summary": "MCP protocol endpoint",
+        "security": [],
+        "responses": { "200": { "description": "MCP server info" } }
+      },
+      "post": {
+        "summary": "MCP tools execution",
+        "security": [],
+        "requestBody": {
+          "content": { "application/json": { "schema": { "type": "object" } } }
+        },
+        "responses": { "200": { "description": "Tool result" } }
+      }
+    }
+  }
+}
