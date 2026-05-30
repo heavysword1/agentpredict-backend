@@ -106,7 +106,11 @@ function findArbitrageOpportunities(games) {
         });
       });
 
-      opportunities.push({
+      const commenceTime = game.commence_time ? new Date(game.commence_time) : null;
+          const daysUntil = commenceTime ? Math.ceil((commenceTime - new Date()) / (1000*60*60*24)) : null;
+          opportunities.push({
+            game_date: commenceTime ? commenceTime.toISOString().split('T')[0] : null,
+            days_until: daysUntil,
         game: `${game.home_team} vs ${game.away_team}`,
         commence_time: game.commence_time,
         profit_margin_pct: parseFloat(profitMargin.toFixed(2)),
