@@ -4,7 +4,7 @@ const NodeCache = require('node-cache');
 const router = express.Router();
 
 const cache = new NodeCache({ stdTTL: 60 });
-const ODDS_API_KEY = process.env.ODDS_API_KEY;
+// Key loaded at request time
 
 const AVAILABLE_SPORTS = [
   'basketball_nba',
@@ -129,6 +129,7 @@ router.get('/', async (req, res) => {
     const regions = req.query.regions || 'us';
     const markets = req.query.markets || 'h2h';
 
+    const ODDS_API_KEY = process.env.ODDS_API_KEY;
     if (!ODDS_API_KEY) {
       return res.status(500).json({
         success: false,
@@ -154,14 +155,14 @@ router.get('/', async (req, res) => {
     const data = response.data;
     const requestsRemaining = response.headers['x-requests-remaining'] || 'unknown';
 
-    if (!data || !data.data) {
+    if (!data) {
       return res.status(500).json({
         success: false,
         error: data.message || 'Failed to fetch odds'
       });
     }
 
-    const games = data.data || [];
+    const games = Array.isArray(data) ? data : (data.data || []);
     const { opportunities, allGames } = findArbitrageOpportunities(games);
 
     const result = {
