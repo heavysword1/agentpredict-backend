@@ -10,6 +10,8 @@ const marketsRouter = require('./routes/markets');
 const marketRouter = require('./routes/market');
 const trendingRouter = require('./routes/trending');
 const mcpRouter = require('./routes/mcp');
+const sportsArbRouter = require('./routes/sports_arb');
+const platformArbRouter = require('./routes/platform_arb');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -87,6 +89,35 @@ try {
           },
           output: { example: { success: true, trending: [{ question: 'Will Bitcoin reach $100k?', source: 'Polymarket', volume_or_liquidity: 5000000, probability: 0.65 }] } }
         }}}
+      },
+
+      'GET /x402/predict/sports_arb': {
+        accepts: [{ scheme: 'exact', price: '$0.005', network: X402_NETWORK, payTo: PAY_TO }],
+        description: 'Find sports betting arbitrage opportunities from The Odds API.',
+        extensions: { bazaar: { info: {
+          description: 'Sports betting arbitrage detection. Returns opportunities where implied probabilities < 100%.',
+          input: { type: 'http', method: 'GET',
+            queryParams: { sport: 'basketball_nba', regions: 'us', markets: 'h2h' },
+            schema: { properties: {
+              sport: { type: 'string', description: 'basketball_nba, americanfootball_nfl, baseball_mlb, icehockey_nhl, soccer_epl, mma_mixed_martial_arts, tennis_atp_wimbledon, golf_masters_tournament_winner' },
+              regions: { type: 'string', description: 'us, uk, eu, au (default: us)' },
+              markets: { type: 'string', description: 'h2h, spreads, totals (default: h2h)' }
+            }, required: [] }
+          },
+          output: { example: { success: true, sport: 'basketball_nba', arb_count: 1, opportunities: [{ game: 'Team A vs Team B', profit_margin_pct: 2.5, bets: [] }] } }
+        }}}
+      },
+
+      'GET /x402/predict/platform_arb': {
+        accepts: [{ scheme: 'exact', price: '$0.001', network: X402_NETWORK, payTo: PAY_TO }],
+        description: 'Find prediction market arbitrage across Polymarket, Kalshi, and Manifold.',
+        extensions: { bazaar: { info: {
+          description: 'Cross-platform prediction market arbitrage. Fuzzy-matches events and detects mispricings.',
+          input: { type: 'http', method: 'GET',
+            schema: { properties: {}, required: [] }
+          },
+          output: { example: { success: true, arb_opportunities: 2, pairs: [{ event_topic: 'event words', spread_pct: 5.2, signal: 'ARB' }] } }
+        }}}
       }
     },
     x402Server,
@@ -102,6 +133,8 @@ try {
 app.use('/x402/predict/markets', marketsRouter);
 app.use('/x402/predict/market', marketRouter);
 app.use('/x402/predict/trending', trendingRouter);
+app.use('/x402/predict/sports_arb', sportsArbRouter);
+app.use('/x402/predict/platform_arb', platformArbRouter);
 
 app.get('/openapi.json', (req, res) => {
   const spec = {
