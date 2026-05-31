@@ -43,7 +43,7 @@ function parseWeatherQuestion(question) {
   let targetDate = null;
   
   // Pattern: "on June 1" or "on May 31"
-  const dateMatch = q.match(/on\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec\w*)\s+(\d{1,2})/i);
+  const dateMatch = q.match(/on\s+(january|february|march|april|may|june|july|august|september|october|november|december|jan|feb|mar|apr|jun|jul|aug|sep|oct|nov|dec)\s+(\d{1,2})/i);
   if (dateMatch) {
     const month = months[dateMatch[1].toLowerCase().substring(0,3)];
     const day = parseInt(dateMatch[2]);

@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
 
     // Fetch Polymarket weather markets
     const { data: polyData } = await axios.get(
-      'https://gamma-api.polymarket.com/markets?limit=200&active=true&closed=false',
+      'https://gamma-api.polymarket.com/markets?limit=200&order=volume&ascending=false',
       { timeout: 12000 }
     );
     const polyMarkets = Array.isArray(polyData) ? polyData : [];
