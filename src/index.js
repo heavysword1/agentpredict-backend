@@ -12,6 +12,7 @@ const trendingRouter = require('./routes/trending');
 const mcpRouter = require('./routes/mcp');
 const sportsArbRouter = require('./routes/sports_arb');
 const platformArbRouter = require('./routes/platform_arb');
+const mispricingRouter = require('./routes/mispricing');
 
 const app = express();
 app.set('trust proxy', 1);
@@ -118,6 +119,18 @@ try {
           },
           output: { example: { success: true, arb_opportunities: 2, pairs: [{ event_topic: 'event words', spread_pct: 5.2, signal: 'ARB' }] } }
         }}}
+      },
+
+      'GET /x402/predict/mispricing': {
+        accepts: [{ scheme: 'exact', price: '$0.01', network: X402_NETWORK, payTo: PAY_TO }],
+        description: 'Detect prediction market outcome mispricings — find markets where real-world outcome is already determined but market price is wrong',
+        extensions: { bazaar: { info: {
+          description: 'Find weather prediction markets where outcome is known but market is mispriced. Compares real temperature vs market expectations.',
+          input: { type: 'http', method: 'GET',
+            schema: { properties: {}, required: [] }
+          },
+          output: { example: { success: true, markets_checked: 5, opportunities_found: 1, opportunities: [{ type: 'weather_outcome', question: 'Will Shanghai highest temp exceed 30°C on June 1?', platform: 'Polymarket', market_prob: 0.15, expected_prob: 0.97, price_diff: 0.82, outcome: 'YES', edge_pct: 82 }] } }
+        }}}
       }
     },
     x402Server,
@@ -135,6 +148,7 @@ app.use('/x402/predict/market', marketRouter);
 app.use('/x402/predict/trending', trendingRouter);
 app.use('/x402/predict/sports_arb', sportsArbRouter);
 app.use('/x402/predict/platform_arb', platformArbRouter);
+app.use('/x402/predict/mispricing', mispricingRouter);
 
 app.get('/openapi.json', (req, res) => {
   const spec = {
